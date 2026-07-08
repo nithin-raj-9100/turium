@@ -1,10 +1,28 @@
 import { useState } from 'react';
+import ReactMarkdown from 'react-markdown';
+import type { Components } from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { QuerySource } from '../api/client';
 
 interface AnswerCardProps {
   answer: string;
   sources: QuerySource[];
 }
+
+const markdownComponents: Components = {
+  p: ({ children }) => <p className="mb-3 last:mb-0">{children}</p>,
+  strong: ({ children }) => (
+    <strong className="font-semibold text-slate-900">{children}</strong>
+  ),
+  em: ({ children }) => <em className="italic">{children}</em>,
+  ul: ({ children }) => (
+    <ul className="mb-3 list-disc space-y-1 pl-5 last:mb-0">{children}</ul>
+  ),
+  ol: ({ children }) => (
+    <ol className="mb-3 list-decimal space-y-1 pl-5 last:mb-0">{children}</ol>
+  ),
+  li: ({ children }) => <li>{children}</li>,
+};
 
 export function AnswerCard({ answer, sources }: AnswerCardProps) {
   const [expanded, setExpanded] = useState(false);
@@ -15,8 +33,10 @@ export function AnswerCard({ answer, sources }: AnswerCardProps) {
         <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-500">
           Answer
         </h3>
-        <div className="whitespace-pre-wrap rounded-lg bg-indigo-50 p-4 text-sm leading-relaxed text-slate-800">
-          {answer}
+        <div className="rounded-lg bg-indigo-50 p-4 text-sm leading-relaxed text-slate-800">
+          <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
+            {answer}
+          </ReactMarkdown>
         </div>
       </div>
 
