@@ -1,5 +1,5 @@
 import { GoogleGenAI } from '@google/genai';
-import { config } from '../config';
+import { config, requireGeminiApiKey } from '../config';
 import { AppError } from '../middleware/error-handler';
 import { logger } from '../lib/logger';
 
@@ -9,6 +9,7 @@ const EMBEDDING_DIMENSIONS = 768;
 let client: GoogleGenAI | null = null;
 
 function getClient(): GoogleGenAI {
+  requireGeminiApiKey();
   if (!client) {
     client = new GoogleGenAI({ apiKey: config.geminiApiKey });
   }

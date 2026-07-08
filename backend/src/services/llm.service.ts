@@ -1,5 +1,5 @@
 import { GoogleGenAI } from '@google/genai';
-import { config } from '../config';
+import { config, requireGeminiApiKey } from '../config';
 import { AppError } from '../middleware/error-handler';
 import { logger } from '../lib/logger';
 
@@ -8,6 +8,7 @@ const LLM_MODEL = 'gemini-3.1-flash-lite';
 let client: GoogleGenAI | null = null;
 
 function getClient(): GoogleGenAI {
+  requireGeminiApiKey();
   if (!client) {
     client = new GoogleGenAI({ apiKey: config.geminiApiKey });
   }

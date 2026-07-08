@@ -11,7 +11,7 @@ export const config = {
   isProduction: process.env.NODE_ENV === 'production',
 };
 
-export function validateConfig(): void {
+export function requireGeminiApiKey(): void {
   if (!config.geminiApiKey) {
     throw new Error('GEMINI_API_KEY environment variable is required');
   }
