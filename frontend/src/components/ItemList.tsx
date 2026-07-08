@@ -1,4 +1,26 @@
-import { ItemSummary } from '../api/client';
+import { AlertCircleIcon, InboxIcon, RefreshCwIcon } from 'lucide-react';
+import { ItemSummary } from '@/api/client';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from '@/components/ui/empty';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Separator } from '@/components/ui/separator';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface ItemListProps {
   items: ItemSummary[];
@@ -11,77 +33,115 @@ function formatDate(iso: string): string {
   return new Date(iso).toLocaleString();
 }
 
+function ItemSkeleton() {
+  return (
+    <Card size="sm">
+      <CardHeader>
+        <Skeleton className="h-4 w-2/3" />
+        <Skeleton className="h-3 w-full" />
+      </CardHeader>
+      <CardContent>
+        <Skeleton className="h-3 w-1/3" />
+      </CardContent>
+    </Card>
+  );
+}
+
 export function ItemList({ items, loading, error, onRefresh }: ItemListProps) {
   return (
-    <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-      <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-slate-900">Saved Items</h2>
-        <button
-          type="button"
-          onClick={onRefresh}
-          disabled={loading}
-          className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-700 transition hover:bg-slate-50 disabled:opacity-50"
-        >
-          Refresh
-        </button>
-      </div>
-
-      {loading && items.length === 0 && (
-        <p className="text-sm text-slate-500">Loading items...</p>
-      )}
-
-      {error && (
-        <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
-          {error}
-        </p>
-      )}
-
-      {!loading && !error && items.length === 0 && (
-        <p className="text-sm text-slate-500">
-          No items yet. Add a note or URL to get started.
-        </p>
-      )}
-
-      <ul className="space-y-3">
-        {items.map((item) => (
-          <li
-            key={item.id}
-            className="rounded-lg border border-slate-100 bg-slate-50 p-4"
+    <Card>
+      <CardHeader>
+        <CardTitle>Saved Items</CardTitle>
+        <CardDescription>
+          {items.length > 0
+            ? `${items.length} item${items.length === 1 ? '' : 's'} in your knowledge base`
+            : 'Your ingested notes and URLs appear here'}
+        </CardDescription>
+        <CardAction>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={onRefresh}
+            disabled={loading}
           >
-            <div className="mb-2 flex items-start justify-between gap-2">
-              <h3 className="font-medium text-slate-900">{item.title}</h3>
-              <span
-                className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${
-                  item.source_type === 'url'
-                    ? 'bg-blue-100 text-blue-700'
-                    : 'bg-emerald-100 text-emerald-700'
-                }`}
-              >
-                {item.source_type}
-              </span>
-            </div>
+            <RefreshCwIcon data-icon="inline-start" />
+            Refresh
+          </Button>
+        </CardAction>
+      </CardHeader>
 
-            <p className="mb-2 line-clamp-2 text-sm text-slate-600">
-              {item.preview}
-            </p>
+      <CardContent className="flex flex-col gap-4">
+        {error && (
+          <Alert variant="destructive">
+            <AlertCircleIcon />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
 
-            <div className="flex flex-wrap gap-3 text-xs text-slate-500">
-              <span>{formatDate(item.created_at)}</span>
-              <span>{item.chunk_count} chunks</span>
-              {item.source_url && (
-                <a
-                  href={item.source_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-indigo-600 hover:underline"
-                >
-                  Source
-                </a>
-              )}
+        {loading && items.length === 0 && (
+          <div className="flex flex-col gap-3">
+            <ItemSkeleton />
+            <ItemSkeleton />
+            <ItemSkeleton />
+          </div>
+        )}
+
+        {!loading && !error && items.length === 0 && (
+          <Empty className="border">
+            <EmptyHeader>
+              <EmptyMedia variant="icon">
+                <InboxIcon />
+              </EmptyMedia>
+              <EmptyTitle>No items yet</EmptyTitle>
+              <EmptyDescription>
+                Add a note or URL above to start building your knowledge base.
+              </EmptyDescription>
+            </EmptyHeader>
+          </Empty>
+        )}
+
+        {items.length > 0 && (
+          <ScrollArea className="max-h-[32rem] pr-3">
+            <div className="flex flex-col gap-3">
+              {items.map((item, index) => (
+                <div key={item.id} className="flex flex-col gap-3">
+                  <Card size="sm" className="bg-muted/40 shadow-none ring-0">
+                    <CardHeader>
+                      <div className="flex items-start justify-between gap-2">
+                        <CardTitle className="truncate">{item.title}</CardTitle>
+                        <Badge variant={item.source_type === 'url' ? 'default' : 'secondary'}>
+                          {item.source_type}
+                        </Badge>
+                      </div>
+                      <CardDescription className="line-clamp-2">
+                        {item.preview}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+                        <span>{formatDate(item.created_at)}</span>
+                        <span>{item.chunk_count} chunks</span>
+                        {item.source_url && (
+                          <a
+                            href={item.source_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-accent-foreground hover:underline"
+                          >
+                            Source
+                          </a>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                  {index < items.length - 1 && <Separator />}
+                </div>
+              ))}
             </div>
-          </li>
-        ))}
-      </ul>
-    </section>
+          </ScrollArea>
+        )}
+      </CardContent>
+    </Card>
   );
 }

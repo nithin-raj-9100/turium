@@ -1,6 +1,21 @@
 import { FormEvent, useState } from 'react';
-import { AnswerCard } from './AnswerCard';
-import { QueryResponse } from '../api/client';
+import { AlertCircleIcon } from 'lucide-react';
+import { QueryResponse } from '@/api/client';
+import { AnswerCard } from '@/components/AnswerCard';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Field, FieldGroup, FieldLabel } from '@/components/ui/field';
+import { Separator } from '@/components/ui/separator';
+import { Spinner } from '@/components/ui/spinner';
+import { Textarea } from '@/components/ui/textarea';
 
 interface QueryPanelProps {
   onAsk: (question: string) => Promise<unknown>;
@@ -19,35 +34,54 @@ export function QueryPanel({ onAsk, loading, error, result }: QueryPanelProps) {
   }
 
   return (
-    <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-      <h2 className="mb-4 text-lg font-semibold text-slate-900">Ask a Question</h2>
+    <Card className="h-full">
+      <CardHeader>
+        <CardTitle>Ask a Question</CardTitle>
+        <CardDescription>
+          Query your saved knowledge with natural language.
+        </CardDescription>
+      </CardHeader>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <textarea
-          value={question}
-          onChange={(e) => setQuestion(e.target.value)}
-          placeholder="What did I save about...?"
-          rows={3}
-          className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
-          disabled={loading}
-        />
+      <form onSubmit={handleSubmit}>
+        <CardContent className="flex flex-col gap-4">
+          <FieldGroup>
+            <Field>
+              <FieldLabel htmlFor="question">Question</FieldLabel>
+              <Textarea
+                id="question"
+                value={question}
+                onChange={(e) => setQuestion(e.target.value)}
+                placeholder="What did I save about...?"
+                rows={3}
+                disabled={loading}
+              />
+            </Field>
+          </FieldGroup>
 
-        {error && (
-          <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
-            {error}
-          </p>
-        )}
+          {error && (
+            <Alert variant="destructive">
+              <AlertCircleIcon />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+        </CardContent>
 
-        <button
-          type="submit"
-          disabled={loading || !question.trim()}
-          className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          {loading ? 'Thinking...' : 'Ask'}
-        </button>
+        <CardFooter>
+          <Button type="submit" disabled={loading || !question.trim()}>
+            {loading && <Spinner data-icon="inline-start" />}
+            {loading ? 'Thinking...' : 'Ask'}
+          </Button>
+        </CardFooter>
       </form>
 
-      {result && <AnswerCard answer={result.answer} sources={result.sources} />}
-    </section>
+      {result && (
+        <>
+          <Separator />
+          <CardContent>
+            <AnswerCard answer={result.answer} sources={result.sources} />
+          </CardContent>
+        </>
+      )}
+    </Card>
   );
 }

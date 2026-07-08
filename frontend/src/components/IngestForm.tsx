@@ -1,4 +1,20 @@
 import { FormEvent, useState } from 'react';
+import { AlertCircleIcon } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Field, FieldGroup, FieldLabel } from '@/components/ui/field';
+import { Input } from '@/components/ui/input';
+import { Spinner } from '@/components/ui/spinner';
+import { Textarea } from '@/components/ui/textarea';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 
 interface IngestFormProps {
   onIngest: (type: 'note' | 'url', value: string) => Promise<unknown>;
@@ -25,70 +41,82 @@ export function IngestForm({ onIngest, loading, error }: IngestFormProps) {
     }
   }
 
+  const canSubmit = type === 'note' ? content.trim().length > 0 : url.trim().length > 0;
+
   return (
-    <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-      <h2 className="mb-4 text-lg font-semibold text-slate-900">Add Knowledge</h2>
+    <Card>
+      <CardHeader>
+        <CardTitle>Add Knowledge</CardTitle>
+        <CardDescription>Save a note or fetch content from a URL.</CardDescription>
+      </CardHeader>
 
-      <div className="mb-4 flex gap-2">
-        <button
-          type="button"
-          onClick={() => setType('note')}
-          className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
-            type === 'note'
-              ? 'bg-indigo-600 text-white'
-              : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-          }`}
-        >
-          Note
-        </button>
-        <button
-          type="button"
-          onClick={() => setType('url')}
-          className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
-            type === 'url'
-              ? 'bg-indigo-600 text-white'
-              : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-          }`}
-        >
-          URL
-        </button>
-      </div>
+      <form onSubmit={handleSubmit}>
+        <CardContent className="flex flex-col gap-4">
+          <FieldGroup>
+            <Field>
+              <FieldLabel>Type</FieldLabel>
+              <ToggleGroup
+                value={[type]}
+                onValueChange={(value) => {
+                  const next = value[0];
+                  if (next === 'note' || next === 'url') {
+                    setType(next);
+                  }
+                }}
+                variant="outline"
+                spacing={0}
+              >
+                <ToggleGroupItem value="note" className="min-w-20">
+                  Note
+                </ToggleGroupItem>
+                <ToggleGroupItem value="url" className="min-w-20">
+                  URL
+                </ToggleGroupItem>
+              </ToggleGroup>
+            </Field>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        {type === 'note' ? (
-          <textarea
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            placeholder="Paste or type your note..."
-            rows={6}
-            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
-            disabled={loading}
-          />
-        ) : (
-          <input
-            type="url"
-            value={url}
-            onChange={(e) => setUrl(e.target.value)}
-            placeholder="https://example.com/article"
-            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
-            disabled={loading}
-          />
-        )}
+            {type === 'note' ? (
+              <Field>
+                <FieldLabel htmlFor="note-content">Note</FieldLabel>
+                <Textarea
+                  id="note-content"
+                  value={content}
+                  onChange={(e) => setContent(e.target.value)}
+                  placeholder="Paste or type your note..."
+                  rows={6}
+                  disabled={loading}
+                />
+              </Field>
+            ) : (
+              <Field>
+                <FieldLabel htmlFor="url-input">URL</FieldLabel>
+                <Input
+                  id="url-input"
+                  type="url"
+                  value={url}
+                  onChange={(e) => setUrl(e.target.value)}
+                  placeholder="https://example.com/article"
+                  disabled={loading}
+                />
+              </Field>
+            )}
+          </FieldGroup>
 
-        {error && (
-          <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
-            {error}
-          </p>
-        )}
+          {error && (
+            <Alert variant="destructive">
+              <AlertCircleIcon />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+        </CardContent>
 
-        <button
-          type="submit"
-          disabled={loading || (type === 'note' ? !content.trim() : !url.trim())}
-          className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          {loading ? 'Saving...' : type === 'note' ? 'Save Note' : 'Fetch & Save URL'}
-        </button>
+        <CardFooter>
+          <Button type="submit" disabled={loading || !canSubmit}>
+            {loading && <Spinner data-icon="inline-start" />}
+            {loading ? 'Saving...' : type === 'note' ? 'Save Note' : 'Fetch & Save URL'}
+          </Button>
+        </CardFooter>
       </form>
-    </section>
+    </Card>
   );
 }
