@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { config } from './config';
+import { config, getGeminiApiKey } from './config';
 import { createApp } from './app';
 import { initDatabase } from './db';
 import { logger } from './lib/logger';
@@ -21,7 +21,12 @@ function main(): void {
 
   app.listen(config.port, host, () => {
     logger.info(
-      { port: config.port, host, env: config.nodeEnv },
+      {
+        port: config.port,
+        host,
+        env: config.nodeEnv,
+        geminiConfigured: Boolean(getGeminiApiKey()),
+      },
       'Server started',
     );
   });

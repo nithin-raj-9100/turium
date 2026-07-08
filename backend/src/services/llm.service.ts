@@ -8,9 +8,9 @@ const LLM_MODEL = 'gemini-3.1-flash-lite';
 let client: GoogleGenAI | null = null;
 
 function getClient(): GoogleGenAI {
-  requireGeminiApiKey();
+  const apiKey = requireGeminiApiKey();
   if (!client) {
-    client = new GoogleGenAI({ apiKey: config.geminiApiKey });
+    client = new GoogleGenAI({ apiKey });
   }
   return client;
 }

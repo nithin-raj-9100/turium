@@ -9,9 +9,9 @@ const EMBEDDING_DIMENSIONS = 768;
 let client: GoogleGenAI | null = null;
 
 function getClient(): GoogleGenAI {
-  requireGeminiApiKey();
+  const apiKey = requireGeminiApiKey();
   if (!client) {
-    client = new GoogleGenAI({ apiKey: config.geminiApiKey });
+    client = new GoogleGenAI({ apiKey });
   }
   return client;
 }
@@ -22,6 +22,11 @@ export function formatDocumentEmbedding(text: string, title: string): string {
 
 export function formatQueryEmbedding(question: string): string {
   return `task: question answering | query: ${question}`;
+}
+
+function embeddingErrorMessage(err: unknown): string {
+  if (err instanceof Error) return err.message;
+  return String(err);
 }
 
 export async function embedText(text: string): Promise<number[]> {
@@ -42,8 +47,17 @@ export async function embedText(text: string): Promise<number[]> {
 
     return values;
   } catch (err) {
-    logger.error({ err }, 'Embedding API failure');
-    throw new AppError(502, 'EMBEDDING_API_ERROR', 'Failed to generate embedding');
+    if (err instanceof AppError) throw err;
+
+    const detail = embeddingErrorMessage(err);
+    logger.error({ err, detail, model: EMBEDDING_MODEL }, 'Embedding API failure');
+
+    const message =
+      config.isProduction
+        ? 'Failed to generate embedding'
+        : `Failed to generate embedding: ${detail}`;
+
+    throw new AppError(502, 'EMBEDDING_API_ERROR', message);
   }
 }
 
